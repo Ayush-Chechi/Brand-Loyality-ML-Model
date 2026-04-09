@@ -1,0 +1,81 @@
+{
+  "created_at": "2026-04-09T10:58:22.413303+00:00",
+  "dataset": "data/project dataset.xlsx",
+  "leakage_free": true,
+  "excluded_feature": "Next Purchase Decision",
+  "target": "Loyal (1) vs Not Loyal (0)",
+  "best_model": "Random Forest (Tuned)",
+  "best_accuracy": 0.88,
+  "models": [
+    {
+      "Model": "Random Forest (Tuned)",
+      "Accuracy": 0.88,
+      "F1": 0.9047619047619048,
+      "Precision": 0.8260869565217391,
+      "Recall": 1.0,
+      "ROC-AUC": 0.9310485516115871,
+      "CV Score": 0.892
+    },
+    {
+      "Model": "Logistic Regression",
+      "Accuracy": 0.87,
+      "F1": 0.8907563025210085,
+      "Precision": 0.8548387096774194,
+      "Recall": 0.9298245614035088,
+      "ROC-AUC": 0.9314565483476132,
+      "CV Score": 0.8560000000000001
+    }
+  ],
+  "rf_best_params": {
+    "model__min_samples_split": 10,
+    "model__min_samples_leaf": 5,
+    "model__max_features": "log2",
+    "model__max_depth": 5
+  },
+  "rf_top_features": [
+    {
+      "feature": "binary__Experience",
+      "importance": 0.3238820500329335
+    },
+    {
+      "feature": "engineered__Experience Score",
+      "importance": 0.2950576394028916
+    },
+    {
+      "feature": "engineered__Experience x Usage",
+      "importance": 0.21427416322042991
+    },
+    {
+      "feature": "ordinal__Usage Duration",
+      "importance": 0.039775567720418584
+    },
+    {
+      "feature": "engineered__Usage Score",
+      "importance": 0.03904974327706417
+    },
+    {
+      "feature": "engineered__Price x Discount",
+      "importance": 0.010150795398676108
+    },
+    {
+      "feature": "ordinal__Discount Influence",
+      "importance": 0.006812754827885593
+    },
+    {
+      "feature": "ordinal__Social Engagement",
+      "importance": 0.006157823258221822
+    },
+    {
+      "feature": "binary__Peer Influence",
+      "importance": 0.005737939777933239
+    },
+    {
+      "feature": "onehot__Decision Factor_Recommendations (Friends/Online)",
+      "importance": 0.005665835999800092
+    }
+  ],
+  "overfitting_check": {
+    "train_accuracy_rf": 0.9025,
+    "test_accuracy_rf": 0.88
+  }
+}
