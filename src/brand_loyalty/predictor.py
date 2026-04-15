@@ -31,7 +31,7 @@ def _validate_and_build_input_df(input_dict: Dict[str, Any]) -> pd.DataFrame:
 def predict_loyalty(
     input_dict: Dict[str, Any],
     *,
-    model_path: str | Path = Path("artifacts") / "models" / "random_forest_tuned.joblib",
+    model_path: str | Path = Path("artifacts") / "models" / "best_model.joblib",
 ) -> str:
     """Predict brand loyalty for a single college student profile.
 

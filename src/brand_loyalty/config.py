@@ -12,7 +12,7 @@ from typing import Dict, List
 @dataclass(frozen=True)
 class Config:
     # Data
-    dataset_path: str = "data/project dataset.xlsx"
+    dataset_path: str = "data/new_dataset.xlsx"
     target_col: str = "Loyalty"
     source_target_col: str = "How likely are you to continue using this brand in the future?"
     drop_cols: List[str] = None  # set in __post_init__

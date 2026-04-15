@@ -1,207 +1,160 @@
-# Smartphone Brand Loyalty Prediction using Machine Learning
+# Smartphone Brand Loyalty Prediction
 
-Clean, leakage-free, binary classification system for predicting student brand loyalty.
+End-to-end, leakage-free binary classification pipeline for predicting whether a student is likely to remain loyal to their smartphone brand.
 
-## 1) Problem Statement
+## 1) Dataset Update
 
-Predict whether a student is:
-- **Loyal (1)**: `Very likely` or `Somewhat likely` to continue the same brand
-- **Not Loyal (0)**: `Not likely`
+- Active dataset: `data/new_dataset.xlsx`
+- Records used by latest run: **500**
+- Modeling features: **8**
+- Dropped columns: `Timestamp`, `Email`
+- Leakage-protected exclusion: `Next Purchase Decision`
 
-Why this matters:
-- Business: retention strategy, segment prioritization, pricing and campaign optimization
-- Behavioral: understanding how experience, usage maturity, social behavior, and value sensitivity shape loyalty
-
-## 2) Dataset Description
-
-- Source: Google Form survey
-- File: `data/project dataset.xlsx`
-- Samples: 500
-- Removed: `Timestamp`, `Email`
-- Leakage removed: `Next Purchase Decision` (excluded entirely)
-
-Features used:
-- `Brand`
-- `Usage Duration`
-- `Experience`
-- `Discount Influence`
-- `Peer Influence`
-- `Decision Factor`
-- `Social Engagement`
-- `Price Importance`
-
-Target source column:
-- `How likely are you to continue using this brand in the future?`
-
-Binary conversion:
-- `Very likely`, `Somewhat likely` -> `Loyal (1)`
+Target definition:
+- `Very likely` and `Somewhat likely` -> `Loyal (1)`
 - `Not likely` -> `Not Loyal (0)`
 
-## 3) Data Preprocessing (Detailed)
+## 2) Data Handling and Preprocessing
 
-The pipeline uses `sklearn` `Pipeline` + `ColumnTransformer` for reproducibility.
+The training system uses a modular `sklearn` pipeline with strict canonicalization + preprocessing:
 
-- **Ordinal encoding**
-  - `Usage Duration`
-  - `Discount Influence`
-  - `Social Engagement`
-- **Binary encoding**
-  - `Experience` (`Yes/No`)
-  - `Peer Influence` (`Yes/No`)
-- **One-hot encoding**
-  - `Brand`
-  - `Decision Factor`
-  - `Price Importance`
+- **Missing values**
+  - Categorical fields: `SimpleImputer(strategy="most_frequent")`
+  - Engineered numeric fields: `SimpleImputer(strategy="median")`
+- **Encoding**
+  - Ordinal encoding: `Usage Duration`, `Discount Influence`, `Social Engagement`
+  - Binary encoding: `Experience`, `Peer Influence`
+  - One-hot encoding: `Brand`, `Decision Factor`, `Price Importance`
+- **Scaling**
+  - `StandardScaler` is applied for Logistic Regression numeric inputs
+- **Feature engineering**
+  - `Experience Score`, `Usage Score`, `Engagement Score`
+  - `Experience x Usage`, `Price x Discount`
 
-Feature engineering (minimal and interpretable):
-- `Experience Score`
-- `Usage Score`
-- `Engagement Score`
-- `Experience x Usage`
-- `Price x Discount`
+## 3) EDA Summary (Latest Run)
 
-## 4) Model Selection
+Generated artifacts:
+- `artifacts/reports/eda_summary.json`
+- `artifacts/plots/missing_values_by_feature.png`
+- `artifacts/plots/class_distribution.png`
 
-Final models in production code:
-- **Random Forest (Tuned)** -> deployment model
-- **Logistic Regression** -> comparison baseline
+Key insights from `eda_summary.json`:
+- Class distribution: `Not Loyal=213`, `Loyal=287` (mild positive-class skew)
+- Missing values: **0% across all 8 features** in the current file
+- Top brands by frequency: `Poco`, `Google Pixel`, `Realme`, `Vivo`, `Samsung`
 
-Why Random Forest:
-- Handles non-linear behavior with mixed categorical/ordinal signals
-- More robust to interaction patterns common in survey data
-- Delivers highest test accuracy in this project
+## 4) Models Trained
 
-Why not deep learning:
-- Dataset is relatively small (500 rows)
-- Tabular structure and interpretability requirements favor tree/linear methods
+The updated training pipeline now trains:
 
-## 5) Model Performance
+1. **Logistic Regression** (baseline)
+2. **Random Forest**
+3. **Gradient Boosting**
+4. **Extra Trees**
+
+Baseline performance table:
+- `artifacts/reports/baseline_model_performance_table.csv`
+
+## 5) Evaluation Metrics
+
+Each model is evaluated using:
+- Accuracy
+- Precision
+- Recall
+- F1-score
+- ROC-AUC
+- Confusion Matrix
+- 5-fold CV Accuracy
+
+Confusion matrix plots are generated for baseline and tuned models in:
+- `artifacts/plots/*_baseline_cm.png`
+- `artifacts/plots/*_tuned_cm.png`
+
+## 6) Top 2 Model Selection + Hyperparameter Tuning
+
+Top 2 baseline models selected by composite score:
+- **Gradient Boosting**
+- **Random Forest**
+
+Tuning method:
+- `RandomizedSearchCV` (5-fold CV, scoring by `accuracy`)
+
+Tuning comparison artifact:
+- `artifacts/reports/top2_model_comparison.csv`
+
+### Before vs After Tuning (Top 2)
+
+| Model | Accuracy Before | Accuracy After | F1 Before | F1 After | Composite Before | Composite After |
+|---|---:|---:|---:|---:|---:|---:|
+| Gradient Boosting | 0.9000 | 0.8800 | 0.9180 | 0.9048 | 0.9155 | 0.9027 |
+| Random Forest | 0.8900 | 0.8800 | 0.9120 | 0.9048 | 0.9101 | 0.9027 |
+
+## 7) Final Selected Model
 
 From `artifacts/reports/project_experiment_metadata.json`:
 
-| Model | Accuracy | F1 | Precision | Recall | ROC-AUC | CV Score |
-|---|---:|---:|---:|---:|---:|---:|
-| Random Forest (Tuned) | 0.88 | 0.9048 | 0.8261 | 1.0000 | 0.9310 | 0.8920 |
-| Logistic Regression | 0.87 | 0.8908 | 0.8548 | 0.9298 | 0.9315 | 0.8560 |
+- **Selected model:** `Gradient Boosting (Baseline)`
+- **Best Accuracy:** `0.90`
+- **Best F1:** `0.9180`
+- **Saved artifact:** `artifacts/models/best_model.joblib`
+- **Model-specific artifact:** `artifacts/models/gradient_boosting_baseline.joblib`
 
-## 6) Overfitting Analysis
+Justification:
+- Gradient Boosting baseline achieved the highest held-out test accuracy in the latest run, so it is selected as deployment model.
 
-Random Forest:
-- Train accuracy: `0.9025`
-- Test accuracy: `0.8800`
-- Gap: `0.0225`
+## 8) Reports and Artifacts
 
-Interpretation:
-- Low gap indicates controlled overfitting and stable generalization.
+### Models
+- `artifacts/models/best_model.joblib`
+- `artifacts/models/logistic_regression_baseline.joblib`
+- `artifacts/models/extra_trees_baseline.joblib`
+- `artifacts/models/random_forest_baseline.joblib`
+- `artifacts/models/gradient_boosting_baseline.joblib`
+- `artifacts/models/random_forest_tuned.joblib`
+- `artifacts/models/gradient_boosting_tuned.joblib`
 
-## 7) Feature Importance
+### Reports
+- `artifacts/reports/project_experiment_metadata.json`
+- `artifacts/reports/model_performance_table.csv`
+- `artifacts/reports/baseline_model_performance_table.csv`
+- `artifacts/reports/tuned_top_models_performance_table.csv`
+- `artifacts/reports/top2_model_comparison.csv`
+- `artifacts/reports/eda_summary.json`
 
-Top contributors include:
-- `Experience`
-- `Experience Score`
-- `Experience x Usage`
-- `Usage Duration`
-- `Price x Discount`
+### Plots
+- `artifacts/plots/class_distribution.png`
+- `artifacts/plots/model_comparison_accuracy.png`
+- `artifacts/plots/top2_tuned_comparison.png`
+- `artifacts/plots/missing_values_by_feature.png`
+- `artifacts/plots/*_baseline_cm.png`
+- `artifacts/plots/*_tuned_cm.png`
 
-Behavioral meaning:
-- Positive product experience and sustained brand usage are the strongest loyalty signals.
-
-## 8) Key Insights
-
-- Experience quality strongly separates loyal vs non-loyal users.
-- Usage maturity (time with brand) reinforces loyalty behavior.
-- Price-discount interaction matters at decision boundaries.
-- Social engagement and peer influence provide supporting context, but weaker than direct experience factors.
-
-## 9) Project Structure
-
-```text
-project/
-│── data/
-│   └── project dataset.xlsx
-│
-│── src/
-│   └── brand_loyalty/
-│       ├── config.py
-│       ├── data.py
-│       ├── preprocessing.py
-│       ├── train.py
-│       ├── predictor.py
-│
-│── artifacts/
-│   ├── models/
-│   ├── plots/
-│   └── reports/
-│
-│── notebooks/
-│   └── brand_loyalty_analysis.ipynb
-│
-│── app.py
-│── README.md
-│── requirements.txt
-```
-
-## 10) How to Run
+## 9) How to Run
 
 ```bash
-python -m src.brand_loyalty.train
+python -m src.brand_loyalty.train --dataset "data/new_dataset.xlsx" --output-dir "artifacts"
 streamlit run app.py
 ```
 
-## 11) Streamlit Dashboard
+## 10) Project Structure
 
-Left panel:
-- Full questionnaire inputs
-- Prediction + confidence score
-
-Right panel:
-- Dataset Overview
-- Model Performance Table
-- Overfitting Check
-- Feature Importance
-- Behavioral Insights
-
-## 12) Plot Gallery and Interpretation
-
-### Class Distribution
-![Class Distribution](artifacts/plots/class_distribution.png)
-
-What this tells us:
-- Shows the balance between `Loyal` and `Not Loyal` classes.
-- Confirms whether class imbalance handling is necessary.
-
-### Model Comparison (Accuracy)
-![Model Comparison](artifacts/plots/model_comparison_accuracy.png)
-
-What this tells us:
-- Compares test accuracy between Logistic Regression and Random Forest.
-- Confirms Random Forest as the best deployment model in this project.
-
-### Random Forest Confusion Matrix
-![Random Forest Confusion Matrix](artifacts/plots/random_forest_tuned_cm.png)
-
-What this tells us:
-- Displays true vs predicted classes for the final model.
-- Helps identify error types (false positives vs false negatives).
-
-### Logistic Regression Confusion Matrix
-![Logistic Regression Confusion Matrix](artifacts/plots/logistic_regression_cm.png)
-
-What this tells us:
-- Baseline error pattern for comparison against Random Forest.
-- Useful to explain why tree-based modeling was selected.
-
-### Random Forest Feature Importance
-![Random Forest Feature Importance](artifacts/plots/random_forest_feature_importance.png)
-
-What this tells us:
-- Ranks the top predictive features in the final model.
-- Highlights which behavioral variables most influence loyalty prediction.
-
-## 13) Future Improvements
-
-- Calibrated probabilities for threshold-sensitive decisioning
-- Confidence intervals via bootstrap evaluation
-- Segment-wise fairness and stability analysis
-- Periodic retraining with new cohorts
+```text
+BrandLoyality/
+├── data/
+│   ├── project_dataset.xlsx
+│   └── new_dataset.xlsx
+├── src/brand_loyalty/
+│   ├── config.py
+│   ├── data.py
+│   ├── preprocessing.py
+│   ├── train.py
+│   └── predictor.py
+├── artifacts/
+│   ├── models/
+│   ├── plots/
+│   └── reports/
+├── app.py
+├── README.md
+└── requirements.txt
+```
 

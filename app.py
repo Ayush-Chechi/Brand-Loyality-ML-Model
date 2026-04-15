@@ -13,7 +13,7 @@ from src.brand_loyalty.data import canonicalize_features
 from src.brand_loyalty.train import train
 
 ARTIFACTS_DIR = Path("artifacts")
-MODEL_PATH = ARTIFACTS_DIR / "models" / "random_forest_tuned.joblib"
+MODEL_PATH = ARTIFACTS_DIR / "models" / "best_model.joblib"
 DATASET_PATH = Path(CFG.dataset_path)
 REPORT_PATH = ARTIFACTS_DIR / "reports" / "project_experiment_metadata.json"
 
@@ -115,7 +115,7 @@ def main() -> None:
             st.success("Training complete.")
 
     if not DATASET_PATH.exists():
-        st.error("`project dataset.xlsx` not found in project root.")
+        st.error("`new_dataset.xlsx` not found in `data/`.")
         st.stop()
 
     options = load_options(DATASET_PATH)
@@ -135,7 +135,7 @@ def main() -> None:
         st.subheader("Experimental Results & Insights")
         if report:
             st.markdown("### Dataset Overview")
-            st.write(f"- Samples: **500**")
+            st.write(f"- Samples: **{report.get('dataset_samples', 'N/A')}**")
             st.write(f"- Leakage removed: **{report.get('excluded_feature', 'N/A')}**")
 
             st.markdown("### Model Performance Table")
@@ -145,11 +145,11 @@ def main() -> None:
 
             st.markdown("### Overfitting Check")
             over = report.get("overfitting_check", {})
-            train_acc = over.get("train_accuracy_rf")
-            test_acc = over.get("test_accuracy_rf")
+            train_acc = over.get("train_accuracy_best")
+            test_acc = over.get("test_accuracy_best")
             gap = None if train_acc is None or test_acc is None else float(train_acc) - float(test_acc)
-            st.write(f"- Train Accuracy (RF): **{train_acc:.4f}**" if train_acc is not None else "- Train Accuracy (RF): N/A")
-            st.write(f"- Test Accuracy (RF): **{test_acc:.4f}**" if test_acc is not None else "- Test Accuracy (RF): N/A")
+            st.write(f"- Train Accuracy (Best Model): **{train_acc:.4f}**" if train_acc is not None else "- Train Accuracy (Best Model): N/A")
+            st.write(f"- Test Accuracy (Best Model): **{test_acc:.4f}**" if test_acc is not None else "- Test Accuracy (Best Model): N/A")
             st.write(f"- Gap: **{gap:.4f}**" if gap is not None else "- Gap: N/A")
 
             st.markdown("### Feature Importance (Random Forest)")
@@ -178,8 +178,10 @@ def main() -> None:
             st.image(str(f), caption="Model Comparison", width="stretch")
     with p3:
         f = pdir / "random_forest_tuned_cm.png"
+        if not f.exists():
+            f = pdir / "gradient_boosting_tuned_cm.png"
         if f.exists():
-            st.image(str(f), caption="RF Confusion Matrix", width="stretch")
+            st.image(str(f), caption="Best Model Confusion Matrix", width="stretch")
     with p4:
         f = pdir / "random_forest_feature_importance.png"
         if f.exists():
