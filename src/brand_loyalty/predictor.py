@@ -40,17 +40,16 @@ def predict_loyalty(
             - Brand
             - Usage Duration
             - Experience
-            - Next Purchase Decision
             - Discount Influence
             - Peer Influence
             - Decision Factor
             - Social Engagement
             - Price Importance
           (Timestamp/Email are not required.)
-        model_path: path to the saved RF pipeline artifact.
+        model_path: path to the saved best-model pipeline artifact.
 
     Returns:
-        One of: "High", "Medium", "Low"
+        One of: "Loyal", "Not Loyal"
     """
     model_path = Path(model_path)
     if not model_path.exists():

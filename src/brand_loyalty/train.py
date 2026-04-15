@@ -288,10 +288,12 @@ def train(dataset_path: str = CFG.dataset_path, output_dir: str = "artifacts") -
         best_model = tuned_models[best_model_name]
         best_metrics = tuned_eval[best_model_name]
         model_filename = f"{best_model_name.lower().replace(' ', '_')}_tuned"
+        best_params = tuning_params.get(best_model_name, {})
     else:
         best_model = baseline_model_map[best_model_name]
         best_metrics = baseline_eval[best_model_name]
         model_filename = f"{best_model_name.lower().replace(' ', '_')}_baseline"
+        best_params = {}
 
     # Save models
     for model_name, model in baseline_models:
@@ -392,7 +394,7 @@ def train(dataset_path: str = CFG.dataset_path, output_dir: str = "artifacts") -
         "best_model_artifact": f"models/{model_filename}.joblib",
         "best_accuracy": best_metrics["accuracy"],
         "best_f1": best_metrics["F1"],
-        "best_params": tuning_params.get(best_model_name, {}),
+        "best_params": best_params,
         "tuning_params": tuning_params,
         "rf_top_features": [{"feature": n, "importance": v} for n, v in zip(top_names, top_vals)],
         "eda_summary": eda,

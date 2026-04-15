@@ -1,5 +1,5 @@
 {
-  "created_at": "2026-04-15T11:20:24.337905+00:00",
+  "created_at": "2026-04-15T11:28:43.157948+00:00",
   "dataset": "data/new_dataset.xlsx",
   "dataset_samples": 500,
   "dataset_features": 8,
@@ -112,13 +112,7 @@
   "best_model_artifact": "models/gradient_boosting_baseline.joblib",
   "best_accuracy": 0.9,
   "best_f1": 0.9180327868852459,
-  "best_params": {
-    "model__subsample": 0.7,
-    "model__n_estimators": 150,
-    "model__min_samples_leaf": 2,
-    "model__max_depth": 2,
-    "model__learning_rate": 0.03
-  },
+  "best_params": {},
   "tuning_params": {
     "Random Forest": {
       "model__n_estimators": 500,

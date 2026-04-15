@@ -65,6 +65,24 @@ def _predict_with_confidence(input_dict: Dict[str, Any]) -> Tuple[str, float]:
     return label, float(max(proba) * 100.0)
 
 
+def _resolve_best_cm_plot(report: Dict[str, Any], pdir: Path) -> Path | None:
+    model_name = str(report.get("best_model", "")).split(" (")[0].strip().lower().replace(" ", "_")
+    variant = "baseline" if "(Baseline)" in str(report.get("best_model", "")) else "tuned"
+    candidate = pdir / f"{model_name}_{variant}_cm.png"
+    if candidate.exists():
+        return candidate
+    fallbacks = [
+        pdir / "gradient_boosting_baseline_cm.png",
+        pdir / "gradient_boosting_tuned_cm.png",
+        pdir / "random_forest_baseline_cm.png",
+        pdir / "random_forest_tuned_cm.png",
+    ]
+    for f in fallbacks:
+        if f.exists():
+            return f
+    return None
+
+
 def _result_card(label: str, confidence: float) -> None:
     color = {"Loyal": "#22c55e", "Not Loyal": "#ef4444"}.get(label, "#64748b")
     st.markdown(
@@ -139,9 +157,21 @@ def main() -> None:
             st.write(f"- Leakage removed: **{report.get('excluded_feature', 'N/A')}**")
 
             st.markdown("### Model Performance Table")
-            perf = pd.DataFrame(report.get("models", []))
+            perf = pd.DataFrame(report.get("models_baseline", []))
             if not perf.empty:
+                st.caption("Baseline model performance")
                 st.dataframe(perf, width="stretch", hide_index=True)
+
+            tuned_perf = pd.DataFrame(report.get("models", []))
+            if not tuned_perf.empty:
+                st.caption("Top-2 tuned model performance")
+                st.dataframe(tuned_perf, width="stretch", hide_index=True)
+
+            st.markdown("### Selected Best Model")
+            st.write(f"- Model: **{report.get('best_model', 'N/A')}**")
+            st.write(f"- Accuracy: **{report.get('best_accuracy', 'N/A')}**")
+            st.write(f"- F1-score: **{report.get('best_f1', 'N/A')}**")
+            st.write(f"- Artifact: `{report.get('best_model_artifact', 'N/A')}`")
 
             st.markdown("### Overfitting Check")
             over = report.get("overfitting_check", {})
@@ -167,25 +197,35 @@ def main() -> None:
     st.divider()
     st.subheader("Plots")
     pdir = ARTIFACTS_DIR / "plots"
-    p1, p2, p3, p4 = st.columns(4)
-    with p1:
+
+    row1 = st.columns(3)
+    row2 = st.columns(3)
+
+    with row1[0]:
         f = pdir / "class_distribution.png"
         if f.exists():
             st.image(str(f), caption="Class Distribution", width="stretch")
-    with p2:
+    with row1[1]:
         f = pdir / "model_comparison_accuracy.png"
         if f.exists():
-            st.image(str(f), caption="Model Comparison", width="stretch")
-    with p3:
-        f = pdir / "random_forest_tuned_cm.png"
-        if not f.exists():
-            f = pdir / "gradient_boosting_tuned_cm.png"
+            st.image(str(f), caption="Baseline Model Accuracy Comparison", width="stretch")
+    with row1[2]:
+        f = pdir / "top2_tuned_comparison.png"
         if f.exists():
+            st.image(str(f), caption="Top-2 Tuned Composite Comparison", width="stretch")
+
+    with row2[0]:
+        f = _resolve_best_cm_plot(report or {}, pdir)
+        if f and f.exists():
             st.image(str(f), caption="Best Model Confusion Matrix", width="stretch")
-    with p4:
+    with row2[1]:
+        f = pdir / "missing_values_by_feature.png"
+        if f.exists():
+            st.image(str(f), caption="Missing Values by Feature", width="stretch")
+    with row2[2]:
         f = pdir / "random_forest_feature_importance.png"
         if f.exists():
-            st.image(str(f), caption="RF Feature Importance", width="stretch")
+            st.image(str(f), caption="Random Forest Feature Importance", width="stretch")
 
 
 if __name__ == "__main__":

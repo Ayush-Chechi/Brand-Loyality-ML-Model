@@ -136,6 +136,11 @@ python -m src.brand_loyalty.train --dataset "data/new_dataset.xlsx" --output-dir
 streamlit run app.py
 ```
 
+Web app updates:
+- Sidebar retraining now refreshes all baseline + tuned reports and model artifacts.
+- Results panel now shows baseline performance, tuned top-2 performance, and the selected best model details.
+- Best-model confusion matrix is selected dynamically based on the current report metadata.
+
 ## 10) Project Structure
 
 ```text
